@@ -12,6 +12,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import org.itl.service.ImageToLatexService;
 import org.itl.service.ImageToLatexServiceImpl;
@@ -28,14 +29,16 @@ public class MainController {
 
     ExecutorService executorService = Executors.newFixedThreadPool(5);
 
-    public ImageToLatexService itlService = new ImageToLatexServiceImpl();
+    private ImageToLatexService itlService = new ImageToLatexServiceImpl();
 
     @FXML
-    public TextArea latexTextArea;
+    private TextArea latexTextArea;
     @FXML
-    public ImageView latexImageView;
+    private ImageView latexImageView;
+    @FXML
+    private Pane imagePane;
 
-    public HBox hbox;
+    private HBox hbox;
 
     @FXML
     public void handleOnDragDropped(DragEvent dragEvent) {
@@ -48,10 +51,11 @@ public class MainController {
                 String latexMathematicalExpression = itlService.compute(Paths.get(image.getPath()));
                 latexTextArea.setText(latexMathematicalExpression);
                 TeXFormula teXFormula = new TeXFormula(latexMathematicalExpression);
-                teXFormula.createJPEG(1, 200, "src\\main\\resources\\temp\\tmp.jpg", java.awt.Color.WHITE, java.awt.Color.BLACK);
+                teXFormula.createJPEG(1, 100, "src\\main\\resources\\temp\\tmp.jpg", java.awt.Color.WHITE, java.awt.Color.BLACK);
                 try {
-                    latexImageView.setImage(new Image(Paths.get("src\\main\\resources\\temp\\tmp.jpg").toUri().toURL().toString()));
-                    centerImage(latexImageView);
+                    String imagePath = Paths.get("src\\main\\resources\\temp\\tmp.jpg").toUri().toURL().toString();
+                    latexImageView.setImage(new Image(imagePath));
+                    centerImage(imagePane, latexImageView);
                 } catch (MalformedURLException e) {
                     // log it
                     e.printStackTrace();
@@ -66,29 +70,34 @@ public class MainController {
         dragEvent.consume();
     }
 
-    public static void centerImage(ImageView imageView) {
-        Image img = imageView.getImage();
-        if (img != null) {
-            double w = 0;
-            double h = 0;
+    public static void centerImage(Pane parent, ImageView imageView) {
+        imageView.getFitWidth();
 
-            double ratioX = imageView.getFitWidth() / img.getWidth();
-            double ratioY = imageView.getFitHeight() / img.getHeight();
-
-            double reducCoeff = 0;
-            if(ratioX >= ratioY) {
-                reducCoeff = ratioY;
-            } else {
-                reducCoeff = ratioX;
-            }
-
-            w = img.getWidth() * reducCoeff;
-            h = img.getHeight() * reducCoeff;
-
-            imageView.setX((imageView.getFitWidth() - w) / 2);
-            imageView.setY((imageView.getFitHeight() - h) / 2);
-
-        }
+//        imageView.setX(parent.getPrefWidth()/2 - imageView.getImage().getWidth()/2);
+//        imageView.setY(parent.getPrefHeight()/2 - imageView.getImage().getHeight()/2);
+//
+//        Image img = imageView.getImage();
+//        if (img != null) {
+//            double w = 0;
+//            double h = 0;
+//
+//            double ratioX = imageView.getFitWidth() / img.getWidth();
+//            double ratioY = imageView.getFitHeight() / img.getHeight();
+//
+//            double reducCoeff = 0;
+//            if(ratioX >= ratioY) {
+//                reducCoeff = ratioY;
+//            } else {
+//                reducCoeff = ratioX;
+//            }
+//
+//            w = img.getWidth() * reducCoeff;
+//            h = img.getHeight() * reducCoeff;
+//
+//            imageView.setX((imageView.getFitWidth() - w) / 2);
+//            imageView.setY((imageView.getFitHeight() - h) / 2);
+//
+//        }
     }
 
     @FXML
