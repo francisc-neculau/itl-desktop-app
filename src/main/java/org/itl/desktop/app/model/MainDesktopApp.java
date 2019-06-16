@@ -28,27 +28,18 @@ public class MainDesktopApp extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        System.setProperty("configurationFactory","org.apache.logging.log4j.core.config.json.JsonConfigurationFactory");
+//        System.setProperty("configurationFactory","org.apache.logging.log4j.core.config.json.JsonConfigurationFactory");
 //        String sources = "C:\\ComputerScience\\source\\";
 //        System.setProperty("log4j.configurationFile", sources + "itl-service\\src\\main\\resources\\log4j2.json");
-        String rootp = "C:/ComputerScience/source/itl-desktop-app/target/classes/";
-        String path = rootp + "fxml/sample.fxml";
+        primaryStage.initStyle(StageStyle.UNDECORATED);
+        primaryStage.setTitle("ITL : Image to LaTeX");
+
+        String path = "C:/ComputerScience/source/itl-desktop-app/target/classes/" + "fxml/sample.fxml";
         System.out.println(Paths.get(path).toUri());
         Parent root = FXMLLoader.load(Paths.get(path).toUri().toURL());
-//        root.setOnDragOver(new EventHandler<DragEvent>() {
-//            @Override
-//            public void handle(final DragEvent event) {
-//                mouseDragOver(event);
-//            }
-//        });
-        primaryStage.initStyle(StageStyle.UNDECORATED);
-        primaryStage.setTitle("Hello World");
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
         allowDrag(scene.lookup("#hbox"), primaryStage);
-
-//        primaryStage.getScene().getRoot().setEffect(new DropShadow());
-//        primaryStage.getScene().setFill(Color.TRANSPARENT);
 
         primaryStage.show();
     }
