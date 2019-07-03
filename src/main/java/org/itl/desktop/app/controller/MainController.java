@@ -2,10 +2,14 @@ package org.itl.desktop.app.controller;
 
 import com.sun.prism.paint.Color;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.event.WeakEventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
@@ -17,15 +21,20 @@ import javafx.stage.Stage;
 import org.itl.service.ImageToLatexService;
 import org.itl.service.ImageToLatexServiceImpl;
 import org.scilab.forge.jlatexmath.TeXFormula;
+import org.scilab.forge.jlatexmath.TeXIcon;
 
+import java.awt.*;
 import java.awt.dnd.DragSource;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Paths;
+import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MainController {
+public class MainController implements Initializable {
 
     ExecutorService executorService = Executors.newFixedThreadPool(5);
 
@@ -50,11 +59,8 @@ public class MainController {
             Runnable runnable = () -> {
                 String latexMathematicalExpression = itlService.compute(Paths.get(image.getPath()));
                 latexTextArea.setText(latexMathematicalExpression);
-                TeXFormula teXFormula = new TeXFormula(latexMathematicalExpression);
-                teXFormula.createJPEG(1, 100, "src\\main\\resources\\temp\\tmp.jpg", java.awt.Color.WHITE, java.awt.Color.BLACK);
                 try {
-                    String imagePath = Paths.get("src\\main\\resources\\temp\\tmp.jpg").toUri().toURL().toString();
-                    latexImageView.setImage(new Image(imagePath));
+                    latexImageView.setImage(createSerializedFxImageFromLatexCode(latexMathematicalExpression));
                     centerImage(imagePane, latexImageView);
                 } catch (MalformedURLException e) {
                     // log it
@@ -71,33 +77,7 @@ public class MainController {
     }
 
     public static void centerImage(Pane parent, ImageView imageView) {
-        imageView.getFitWidth();
-
-//        imageView.setX(parent.getPrefWidth()/2 - imageView.getImage().getWidth()/2);
-//        imageView.setY(parent.getPrefHeight()/2 - imageView.getImage().getHeight()/2);
-//
-//        Image img = imageView.getImage();
-//        if (img != null) {
-//            double w = 0;
-//            double h = 0;
-//
-//            double ratioX = imageView.getFitWidth() / img.getWidth();
-//            double ratioY = imageView.getFitHeight() / img.getHeight();
-//
-//            double reducCoeff = 0;
-//            if(ratioX >= ratioY) {
-//                reducCoeff = ratioY;
-//            } else {
-//                reducCoeff = ratioX;
-//            }
-//
-//            w = img.getWidth() * reducCoeff;
-//            h = img.getHeight() * reducCoeff;
-//
-//            imageView.setX((imageView.getFitWidth() - w) / 2);
-//            imageView.setY((imageView.getFitHeight() - h) / 2);
-//
-//        }
+        return; // Not implemented yet.
     }
 
     @FXML
@@ -111,5 +91,38 @@ public class MainController {
     public void handleOnAction(ActionEvent actionEvent) {
         executorService.shutdown();
         Platform.exit();
+    }
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        latexTextArea.textProperty().addListener((observable, oldValue, newValue) -> {
+            if(newValue.equals(oldValue)) {
+                return;
+            } else {
+                try {
+                    latexImageView.setImage(createSerializedFxImageFromLatexCode(newValue));
+                } catch (MalformedURLException e) {
+                    // log it.
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    private static Image createSerializedFxImageFromLatexCode(String latexCode) throws MalformedURLException {
+        TeXFormula teXFormula = new TeXFormula(latexCode);
+        if(Paths.get("src\\main\\resources\\temp\\tmp.jpg").toFile().exists()) {
+            Paths.get("src\\main\\resources\\temp\\tmp.jpg").toFile().delete();
+        }
+        teXFormula.createJPEG(1, 100, "src\\main\\resources\\temp\\tmp.jpg", java.awt.Color.WHITE, java.awt.Color.BLACK);
+        String imagePath = Paths.get("src\\main\\resources\\temp\\tmp.jpg").toUri().toURL().toString();
+        return new Image(imagePath);
+    }
+
+    private static Image createBufferedFxImageFromLatexCode(String latexCode) {
+        TeXFormula teXFormula = new TeXFormula(latexCode);
+        java.awt.Image awtImage = teXFormula.createBufferedImage(1, 100, java.awt.Color.WHITE, java.awt.Color.BLACK);
+        BufferedImage bufferedImage = new BufferedImage(awtImage.getWidth(null), awtImage.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+        return SwingFXUtils.toFXImage(bufferedImage, null);
     }
 }
